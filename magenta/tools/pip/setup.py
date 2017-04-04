@@ -51,6 +51,9 @@ CONSOLE_SCRIPTS = [
     'magenta.models.melody_rnn.melody_rnn_create_dataset',
     'magenta.models.melody_rnn.melody_rnn_generate',
     'magenta.models.melody_rnn.melody_rnn_train',
+    'magenta.models.melody_vae.melody_vae_create_dataset',
+    'magenta.models.melody_vae.melody_vae_generate',
+    'magenta.models.melody_vae.melody_vae_train',
     'magenta.models.polyphony_rnn.polyphony_rnn_create_dataset',
     'magenta.models.polyphony_rnn.polyphony_rnn_generate',
     'magenta.models.polyphony_rnn.polyphony_rnn_train',
@@ -93,4 +96,3 @@ setup(
         'magenta': ['models/image_stylization/evaluation_images/*.jpg'],
     },
 )
-

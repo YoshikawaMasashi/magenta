@@ -12,107 +12,149 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Description: An RNN model for generating melodies.
+# Description: An VAE model for generating melodies.
 
 licenses(["notice"])  # Apache 2.0
 
 py_library(
-    name = "melody_rnn",
+    name = "melody_vae",
     srcs = ["__init__.py"],
     visibility = ["//magenta/tools/pip:__subpackages__"],
     deps = [
-        ":melody_rnn_model",
+        ":melody_vae_model",
     ],
 )
 
 py_library(
-    name = "melody_rnn_config_flags",
-    srcs = ["melody_rnn_config_flags.py"],
+    name = "melody_vae_config_flags",
+    srcs = ["melody_vae_config_flags.py"],
     srcs_version = "PY2AND3",
     visibility = [
-        # internal model:melody_rnn
+        # internal model:melody_vae
     ],
     deps = [
-        ":melody_rnn_model",
+        ":melody_vae_model",
         "//magenta",
         # tensorflow dep
     ],
 )
 
 py_library(
-    name = "melody_rnn_model",
-    srcs = ["melody_rnn_model.py"],
+    name = "melody_vae_model",
+    srcs = ["melody_vae_model.py"],
     srcs_version = "PY2AND3",
     deps = [
         "//magenta",
-        "//magenta/models/shared:events_rnn_model",
+        "//magenta/models/melody_vae:events_vae_model",
     ],
 )
 
 py_library(
-    name = "melody_rnn_sequence_generator",
-    srcs = ["melody_rnn_sequence_generator.py"],
+    name = "melody_vae_sequence_generator",
+    srcs = ["melody_vae_sequence_generator.py"],
     srcs_version = "PY2AND3",
     visibility = ["//magenta/interfaces:generator_interfaces"],
     deps = [
-        ":melody_rnn_model",
+        ":melody_vae_model",
         "//magenta",
     ],
 )
 
 py_binary(
-    name = "melody_rnn_create_dataset",
-    srcs = ["melody_rnn_create_dataset.py"],
+    name = "melody_vae_create_dataset",
+    srcs = ["melody_vae_create_dataset.py"],
     srcs_version = "PY2AND3",
     visibility = [
-        # internal model:melody_rnn
+        # internal model:melody_vae
         "//magenta/tools/pip:__subpackages__",
     ],
     deps = [
-        ":melody_rnn_config_flags",
+        ":melody_vae_config_flags",
         "//magenta",
         # tensorflow dep
     ],
 )
 
 py_test(
-    name = "melody_rnn_create_dataset_test",
-    srcs = ["melody_rnn_create_dataset_test.py"],
+    name = "melody_vae_create_dataset_test",
+    srcs = ["melody_vae_create_dataset_test.py"],
     deps = [
-        ":melody_rnn_create_dataset",
-        ":melody_rnn_model",
+        ":melody_vae_create_dataset",
+        ":melody_vae_model",
         "//magenta",
         # tensorflow dep
     ],
 )
 
 py_binary(
-    name = "melody_rnn_train",
-    srcs = ["melody_rnn_train.py"],
+    name = "melody_vae_train",
+    srcs = ["melody_vae_train.py"],
     srcs_version = "PY2AND3",
     visibility = [
         "//magenta/tools/pip:__subpackages__",
     ],
     deps = [
-        ":melody_rnn_config_flags",
-        "//magenta/models/shared:events_rnn_graph",
-        "//magenta/models/shared:events_rnn_train",
+        ":melody_vae_config_flags",
+        "//magenta/models/melody_vae:events_vae_graph",
+        "//magenta/models/melody_vae:events_vae_train",
         # tensorflow dep
     ],
 )
 
 py_binary(
-    name = "melody_rnn_generate",
-    srcs = ["melody_rnn_generate.py"],
+    name = "melody_vae_generate",
+    srcs = ["melody_vae_generate.py"],
     srcs_version = "PY2AND3",
     visibility = [
         "//magenta/tools/pip:__subpackages__",
     ],
     deps = [
-        ":melody_rnn_config_flags",
-        ":melody_rnn_model",
-        ":melody_rnn_sequence_generator",
+        ":melody_vae_config_flags",
+        ":melody_vae_model",
+        ":melody_vae_sequence_generator",
         "//magenta",
+        # tensorflow dep
+    ],
+)
+
+py_library(
+    name = "events_vae_graph",
+    srcs = ["events_vae_graph.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        "//magenta",
+        # tensorflow dep
+    ],
+)
+
+py_test(
+    name = "events_vae_graph_test",
+    srcs = ["events_vae_graph_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":events_vae_graph",
+        ":events_vae_model",
+        "//magenta",
+        # tensorflow dep
+    ],
+)
+
+py_library(
+    name = "events_vae_model",
+    srcs = ["events_vae_model.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":events_vae_graph",
+        "//magenta",
+        # tensorflow dep
+    ],
+)
+
+py_library(
+    name = "events_vae_train",
+    srcs = ["events_vae_train.py"],
+    srcs_version = "PY2AND3",
+    deps = [
         # tensorflow dep
     ],
 )

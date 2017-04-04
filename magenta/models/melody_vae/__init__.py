@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Imports Melody RNN model."""
+"""Imports Melody VAE model."""
 
-from melody_rnn_model import MelodyRnnModel
+from melody_vae_model import MelodyVaeModel

@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Melody RNN model."""
+"""Melody VAE model."""
 
 import copy
 
 # internal imports
 
 import magenta
-from magenta.models.shared import events_rnn_model
+from magenta.models.melody_vae import events_vae_model
 import magenta.music as mm
 
 DEFAULT_MIN_NOTE = 48
@@ -26,8 +26,8 @@ DEFAULT_MAX_NOTE = 84
 DEFAULT_TRANSPOSE_TO_KEY = 0
 
 
-class MelodyRnnModel(events_rnn_model.EventSequenceRnnModel):
-  """Class for RNN melody generation models."""
+class MelodyVaeModel(events_vae_model.EventSequenceVaeModel):
+  """Class for VAE melody generation models."""
 
   def generate_melody(self, num_steps, primer_melody, temperature=1.0,
                       beam_size=1, branch_factor=1, steps_per_iteration=1):
@@ -83,8 +83,8 @@ class MelodyRnnModel(events_rnn_model.EventSequenceRnnModel):
     return self._evaluate_log_likelihood([melody_copy])[0]
 
 
-class MelodyRnnConfig(events_rnn_model.EventSequenceRnnConfig):
-  """Stores a configuration for a MelodyRnn.
+class MelodyVaeConfig(events_vae_model.EventSequenceVaeConfig):
+  """Stores a configuration for a MelodyVae.
 
   You can change `min_note` and `max_note` to increase/decrease the melody
   range. Since melodies are transposed into this range to be run through
@@ -109,7 +109,7 @@ class MelodyRnnConfig(events_rnn_model.EventSequenceRnnConfig):
   def __init__(self, details, encoder_decoder, hparams,
                min_note=DEFAULT_MIN_NOTE, max_note=DEFAULT_MAX_NOTE,
                transpose_to_key=DEFAULT_TRANSPOSE_TO_KEY):
-    super(MelodyRnnConfig, self).__init__(details, encoder_decoder, hparams)
+    super(MelodyVaeConfig, self).__init__(details, encoder_decoder, hparams)
 
     if min_note < mm.MIN_MIDI_PITCH:
       raise ValueError('min_note must be >= 0. min_note is %d.' % min_note)
@@ -131,17 +131,17 @@ class MelodyRnnConfig(events_rnn_model.EventSequenceRnnConfig):
 
 # Default configurations.
 default_configs = {
-    'basic_rnn': MelodyRnnConfig(
+    'basic_vae': MelodyVaeConfig(
         magenta.protobuf.generator_pb2.GeneratorDetails(
-            id='basic_rnn',
-            description='Melody RNN with one-hot encoding.'),
+            id='basic_vae',
+            description='Melody VAE with one-hot encoding.'),
         magenta.music.OneHotEventSequenceEncoderDecoder(
             magenta.music.MelodyOneHotEncoding(
                 min_note=DEFAULT_MIN_NOTE,
                 max_note=DEFAULT_MAX_NOTE)),
         magenta.common.HParams(
             batch_size=128,
-            rnn_layer_sizes=[128, 128],
+            vae_layer_sizes=[128, 128],
             dropout_keep_prob=0.5,
             skip_first_n_losses=0,
             clip_norm=5,
@@ -149,17 +149,17 @@ default_configs = {
             decay_steps=1000,
             decay_rate=0.85)),
 
-    'lookback_rnn': MelodyRnnConfig(
+    'lookback_vae': MelodyVaeConfig(
         magenta.protobuf.generator_pb2.GeneratorDetails(
-            id='lookback_rnn',
-            description='Melody RNN with lookback encoding.'),
+            id='lookback_vae',
+            description='Melody VAE with lookback encoding.'),
         magenta.music.LookbackEventSequenceEncoderDecoder(
             magenta.music.MelodyOneHotEncoding(
                 min_note=DEFAULT_MIN_NOTE,
                 max_note=DEFAULT_MAX_NOTE)),
         magenta.common.HParams(
             batch_size=128,
-            rnn_layer_sizes=[128, 128],
+            vae_layer_sizes=[128, 128],
             dropout_keep_prob=0.5,
             skip_first_n_losses=0,
             clip_norm=5,
@@ -167,16 +167,16 @@ default_configs = {
             decay_steps=1000,
             decay_rate=0.95)),
 
-    'attention_rnn': MelodyRnnConfig(
+    'attention_vae': MelodyVaeConfig(
         magenta.protobuf.generator_pb2.GeneratorDetails(
-            id='attention_rnn',
-            description='Melody RNN with lookback encoding and attention.'),
+            id='attention_vae',
+            description='Melody VAE with lookback encoding and attention.'),
         magenta.music.KeyMelodyEncoderDecoder(
             min_note=DEFAULT_MIN_NOTE,
             max_note=DEFAULT_MAX_NOTE),
         magenta.common.HParams(
             batch_size=128,
-            rnn_layer_sizes=[128, 128],
+            vae_layer_sizes=[128, 128],
             dropout_keep_prob=0.5,
             skip_first_n_losses=0,
             attn_length=40,

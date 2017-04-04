@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Event sequence RNN model."""
+"""Event sequence VAE model."""
 
 import copy
 import heapq
@@ -22,16 +22,18 @@ import numpy as np
 from six.moves import range  # pylint: disable=redefined-builtin
 import tensorflow as tf
 
-from magenta.models.shared import events_rnn_graph
+#from magenta.models.malody_vae import events_vae_graph
+from . import events_vae_graph
+#TODO:fix this error.
 import magenta.music as mm
 
 
-class EventSequenceRnnModelException(Exception):
+class EventSequenceVaeModelException(Exception):
   pass
 
 
-class EventSequenceRnnModel(mm.BaseModel):
-  """Class for RNN event sequence generation models.
+class EventSequenceVaeModel(mm.BaseModel):
+  """Class for VAE event sequence generation models.
 
   Currently this class only supports generation, of both event sequences and
   note sequences (via event sequences). Support for model training will be added
@@ -39,13 +41,13 @@ class EventSequenceRnnModel(mm.BaseModel):
   """
 
   def __init__(self, config):
-    """Initialize the EventSequenceRnnModel.
+    """Initialize the EventSequenceVaeModel.
 
     Args:
-      config: An EventSequenceRnnConfig containing the encoder/decoder and
+      config: An EventSequenceVaeConfig containing the encoder/decoder and
         HParams to use.
     """
-    super(EventSequenceRnnModel, self).__init__()
+    super(EventSequenceVaeModel, self).__init__()
     self._config = config
 
     # Override hparams for generation.
@@ -55,7 +57,7 @@ class EventSequenceRnnModel(mm.BaseModel):
     self._config.hparams.batch_size = 1
 
   def _build_graph_for_generation(self):
-    return events_rnn_graph.build_graph('generate', self._config)
+    return events_vae_graph.build_graph('generate', self._config)
 
   def _generate_step_for_batch(self, event_sequences, inputs, initial_state,
                                temperature):
@@ -69,13 +71,13 @@ class EventSequenceRnnModel(mm.BaseModel):
           to `self._config.hparams.batch_size`.
       inputs: A Python list of model inputs, with length equal to
           `self._config.hparams.batch_size`.
-      initial_state: A numpy array containing the initial RNN state, where
+      initial_state: A numpy array containing the initial VAE state, where
           `initial_state.shape[0]` is equal to
           `self._config.hparams.batch_size`.
       temperature: The softmax temperature.
 
     Returns:
-      final_state: The final RNN state, a numpy array the same size as
+      final_state: The final VAE state, a numpy array the same size as
           `initial_state`.
       loglik: The log-likelihood of the chosen softmax value for each event
           sequence, a 1-D numpy array of length
@@ -123,12 +125,12 @@ class EventSequenceRnnModel(mm.BaseModel):
       event_sequences: A list of event sequence objects.
       inputs: A Python list of model inputs, with length equal to the number of
           event sequences.
-      initial_state: A numpy array containing the initial RNN states, where
+      initial_state: A numpy array containing the initial VAE states, where
           `initial_state.shape[0]` is equal to the number of event sequences.
       temperature: The softmax temperature.
 
     Returns:
-      final_state: The final RNN state, a numpy array the same size as
+      final_state: The final VAE state, a numpy array the same size as
           `initial_state`.
       loglik: The log-likelihood of the chosen softmax value for each event
           sequence, a 1-D numpy array of length
@@ -190,14 +192,14 @@ class EventSequenceRnnModel(mm.BaseModel):
       num_steps: The integer number of steps to take per branch.
       inputs: A Python list of model inputs, with length equal to the number of
           event sequences.
-      initial_state: A numpy array containing the initial RNN states, where
+      initial_state: A numpy array containing the initial VAE states, where
           `initial_state.shape[0]` is equal to the number of event sequences.
       temperature: The softmax temperature.
 
     Returns:
       all_event_sequences: A list of event sequences, with `branch_factor` times
           as many event sequences as the initial list.
-      all_final_state: A numpy array of final RNN states, where
+      all_final_state: A numpy array of final VAE states, where
           `final_state.shape[0]` is equal to the length of
           `all_event_sequences`.
       all_loglik: A 1-D numpy array of event sequence log-likelihoods, with
@@ -224,7 +226,7 @@ class EventSequenceRnnModel(mm.BaseModel):
 
     Args:
       event_sequences: A list of event sequence objects.
-      final_state: A numpy array containing the final RNN states, where
+      final_state: A numpy array containing the final VAE states, where
           `final_state.shape[0]` is equal to the number of event sequences.
       loglik: A 1-D numpy array of log-likelihoods, the same size as
           `event_sequences`.
@@ -232,7 +234,7 @@ class EventSequenceRnnModel(mm.BaseModel):
 
     Returns:
       event_sequences: The pruned list of event sequences, of length `k`.
-      final_state: The pruned numpy array of final RNN states, where
+      final_state: The pruned numpy array of final VAE states, where
           `final_state.shape[0]` is equal to `k`.
       loglik: The pruned event sequence log-likelihoods, a 1-D numpy array of
           length `k`.
@@ -264,7 +266,7 @@ class EventSequenceRnnModel(mm.BaseModel):
     Prior to the first "real" iteration, an initial branch generation will take
     place. This is for two reasons:
 
-    1) The RNN model needs to be "primed" with the initial event sequence.
+    1) The VAE model needs to be "primed" with the initial event sequence.
     2) The desired total number of steps `num_steps` might not be a multiple of
        `steps_per_iteration`, so the initial branching generates steps such that
        all subsequent iterations can generate `steps_per_iteration` steps.
@@ -382,24 +384,24 @@ class EventSequenceRnnModel(mm.BaseModel):
       The generated event sequence (which begins with the provided primer).
 
     Raises:
-      EventSequenceRnnModelException: If the primer sequence has zero length or
+      EventSequenceVaeModelException: If the primer sequence has zero length or
           is not shorter than num_steps.
     """
     if (control_events is not None and
         not isinstance(self._config.encoder_decoder,
                        mm.ConditionalEventSequenceEncoderDecoder)):
-      raise EventSequenceRnnModelException(
+      raise EventSequenceVaeModelException(
           'control sequence provided but encoder/decoder is not a '
           'ConditionalEventSequenceEncoderDecoder')
 
     if not primer_events:
-      raise EventSequenceRnnModelException(
+      raise EventSequenceVaeModelException(
           'primer sequence must have non-zero length')
     if len(primer_events) >= num_steps:
-      raise EventSequenceRnnModelException(
+      raise EventSequenceVaeModelException(
           'primer sequence must be shorter than `num_steps`')
     if control_events is not None and len(control_events) < num_steps:
-      raise EventSequenceRnnModelException(
+      raise EventSequenceVaeModelException(
           'control sequence must be at least `num_steps`')
 
     events = primer_events
@@ -419,7 +421,7 @@ class EventSequenceRnnModel(mm.BaseModel):
           to `self._config.hparams.batch_size`.
       inputs: A Python list of model inputs, with length equal to
           `self._config.hparams.batch_size`.
-      initial_state: A numpy array containing the initial RNN state, where
+      initial_state: A numpy array containing the initial VAE state, where
           `initial_state.shape[0]` is equal to
           `self._config.hparams.batch_size`.
 
@@ -457,18 +459,18 @@ class EventSequenceRnnModel(mm.BaseModel):
       The log likelihood of each sequence in `event_sequences`.
 
     Raises:
-      EventSequenceRnnModelException: If the event sequences are not all the
+      EventSequenceVaeModelException: If the event sequences are not all the
           same length, or if the control sequence is shorter than the event
           sequences.
     """
     num_steps = len(event_sequences[0])
     for events in event_sequences[1:]:
       if len(events) != num_steps:
-        raise EventSequenceRnnModelException(
+        raise EventSequenceVaeModelException(
             'log likelihood evaluation requires all event sequences to have '
             'the same length')
     if control_events is not None and len(control_events) < num_steps:
-      raise EventSequenceRnnModelException(
+      raise EventSequenceVaeModelException(
           'control sequence must be at least as long as the event sequences')
 
     batch_size = self._config.hparams.batch_size
@@ -520,8 +522,8 @@ class EventSequenceRnnModel(mm.BaseModel):
     return loglik
 
 
-class EventSequenceRnnConfig(object):
-  """Stores a configuration for an event sequence RNN.
+class EventSequenceVaeConfig(object):
+  """Stores a configuration for an event sequence VAE.
 
   Attributes:
     details: The GeneratorDetails message describing the config.

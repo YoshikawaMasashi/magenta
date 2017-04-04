@@ -11,25 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Melody RNN generation code as a SequenceGenerator interface."""
+"""Melody VAE generation code as a SequenceGenerator interface."""
 
 from functools import partial
 
 # internal imports
 
-from magenta.models.melody_rnn import melody_rnn_model
+from magenta.models.melody_vae import melody_vae_model
 import magenta.music as mm
 
 
-class MelodyRnnSequenceGenerator(mm.BaseSequenceGenerator):
-  """Shared Melody RNN generation code as a SequenceGenerator interface."""
+class MelodyVaeSequenceGenerator(mm.BaseSequenceGenerator):
+  """Shared Melody VAE generation code as a SequenceGenerator interface."""
 
   def __init__(self, model, details, steps_per_quarter=4, checkpoint=None,
                bundle=None):
-    """Creates a MelodyRnnSequenceGenerator.
+    """Creates a MelodyVaeSequenceGenerator.
 
     Args:
-      model: Instance of MelodyRnnModel.
+      model: Instance of MelodyVaeModel.
       details: A generator_pb2.GeneratorDetails for this generator.
       steps_per_quarter: What precision to use when quantizing the melody. How
           many steps per quarter note.
@@ -38,7 +38,7 @@ class MelodyRnnSequenceGenerator(mm.BaseSequenceGenerator):
       bundle: A GeneratorBundle object that includes both the model checkpoint
           and metagraph. Mutually exclusive with `checkpoint`.
     """
-    super(MelodyRnnSequenceGenerator, self).__init__(
+    super(MelodyVaeSequenceGenerator, self).__init__(
         model, details, steps_per_quarter, checkpoint, bundle)
 
   def _generate(self, input_sequence, generator_options):
@@ -133,9 +133,9 @@ def get_generator_map():
     bound `config` argument.
   """
   def create_sequence_generator(config, **kwargs):
-    return MelodyRnnSequenceGenerator(
-        melody_rnn_model.MelodyRnnModel(config), config.details,
+    return MelodyVaeSequenceGenerator(
+        melody_vae_model.MelodyVaeModel(config), config.details,
         steps_per_quarter=config.steps_per_quarter, **kwargs)
 
   return {key: partial(create_sequence_generator, config)
-          for (key, config) in melody_rnn_model.default_configs.items()}
+          for (key, config) in melody_vae_model.default_configs.items()}

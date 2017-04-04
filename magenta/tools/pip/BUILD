@@ -48,6 +48,12 @@ sh_binary(
         "//magenta/models/melody_rnn:melody_rnn_generate",
         "//magenta/models/melody_rnn:melody_rnn_train",
 
+        # Melody VAE Model and Scripts
+        "//magenta/models/melody_vae",
+        "//magenta/models/melody_vae:melody_vae_create_dataset",
+        "//magenta/models/melody_vae:melody_vae_generate",
+        "//magenta/models/melody_vae:melody_vae_train",
+
         # Polyphony RNN Model and Scripts
         "//magenta/models/polyphony_rnn",
         "//magenta/models/polyphony_rnn:polyphony_rnn_create_dataset",

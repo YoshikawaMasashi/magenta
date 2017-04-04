@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Generate melodies from a trained checkpoint of a melody RNN model."""
+"""Generate melodies from a trained checkpoint of a melody VAE model."""
 
 import ast
 import os
@@ -22,9 +22,9 @@ import time
 import tensorflow as tf
 import magenta
 
-from magenta.models.melody_rnn import melody_rnn_config_flags
-from magenta.models.melody_rnn import melody_rnn_model
-from magenta.models.melody_rnn import melody_rnn_sequence_generator
+from magenta.models.melody_vae import melody_vae_config_flags
+from magenta.models.melody_vae import melody_vae_model
+from magenta.models.melody_vae import melody_vae_sequence_generator
 from magenta.protobuf import generator_pb2
 from magenta.protobuf import music_pb2
 
@@ -50,7 +50,7 @@ tf.app.flags.DEFINE_string(
     'A short, human-readable text description of the bundle (e.g., training '
     'data, hyper parameters, etc.).')
 tf.app.flags.DEFINE_string(
-    'output_dir', '/tmp/melody_rnn/generated',
+    'output_dir', '/tmp/melody_vae/generated',
     'The directory where MIDI files will be saved to.')
 tf.app.flags.DEFINE_integer(
     'num_outputs', 10,
@@ -133,7 +133,7 @@ def run_with_flags(generator):
   Uses the options specified by the flags defined in this module.
 
   Args:
-    generator: The MelodyRnnSequenceGenerator to use for generation.
+    generator: The MelodyVaeSequenceGenerator to use for generation.
   """
   if not FLAGS.output_dir:
     tf.logging.fatal('--output_dir required')
@@ -220,9 +220,9 @@ def main(unused_argv):
   """Saves bundle or runs generator based on flags."""
   tf.logging.set_verbosity(FLAGS.log)
 
-  config = melody_rnn_config_flags.config_from_flags()
-  generator = melody_rnn_sequence_generator.MelodyRnnSequenceGenerator(
-      model=melody_rnn_model.MelodyRnnModel(config),
+  config = melody_vae_config_flags.config_from_flags()
+  generator = melody_vae_sequence_generator.MelodyVaeSequenceGenerator(
+      model=melody_vae_model.MelodyVaeModel(config),
       details=config.details,
       steps_per_quarter=config.steps_per_quarter,
       checkpoint=get_checkpoint(),

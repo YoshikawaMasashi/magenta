@@ -14,7 +14,7 @@
 """Create a dataset of SequenceExamples from NoteSequence protos.
 
 This script will extract melodies from NoteSequence protos and save them to
-TensorFlow's SequenceExample protos for input to the melody RNN models.
+TensorFlow's SequenceExample protos for input to the melody VAE models.
 """
 
 import os
@@ -23,7 +23,7 @@ import os
 import tensorflow as tf
 import magenta
 
-from magenta.models.melody_rnn import melody_rnn_config_flags
+from magenta.models.melody_vae import melody_vae_config_flags
 
 from magenta.pipelines import dag_pipeline
 from magenta.pipelines import melody_pipelines
@@ -53,7 +53,7 @@ class EncoderPipeline(pipeline.Pipeline):
     """Constructs an EncoderPipeline.
 
     Args:
-      config: A MelodyRnnConfig that specifies the encoder/decoder, pitch range,
+      config: A MelodyVaeConfig that specifies the encoder/decoder, pitch range,
           and what key to transpose into.
       name: A unique pipeline name.
     """
@@ -76,10 +76,10 @@ class EncoderPipeline(pipeline.Pipeline):
 
 
 def get_pipeline(config, eval_ratio):
-  """Returns the Pipeline instance which creates the RNN dataset.
+  """Returns the Pipeline instance which creates the VAE dataset.
 
   Args:
-    config: A MelodyRnnConfig object.
+    config: A MelodyVaeConfig object.
     eval_ratio: Fraction of input to set aside for evaluation set.
 
   Returns:
@@ -114,7 +114,7 @@ def get_pipeline(config, eval_ratio):
 def main(unused_argv):
   tf.logging.set_verbosity(FLAGS.log)
 
-  config = melody_rnn_config_flags.config_from_flags()
+  config = melody_vae_config_flags.config_from_flags()
   pipeline_instance = get_pipeline(
       config, FLAGS.eval_ratio)
 

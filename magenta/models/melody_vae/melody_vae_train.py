@@ -11,19 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Train and evaluate a melody RNN model."""
+"""Train and evaluate a melody VAE model."""
 
 import os
 
 # internal imports
 import tensorflow as tf
 
-from magenta.models.melody_rnn import melody_rnn_config_flags
-from magenta.models.melody_rnn import events_rnn_graph
-from magenta.models.melody_rnn import events_rnn_train
+from magenta.models.melody_vae import melody_vae_config_flags
+from magenta.models.melody_vae import events_vae_graph
+from magenta.models.melody_vae import events_vae_train
 
 FLAGS = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_string('run_dir', '/tmp/melody_rnn/logdir/run1',
+tf.app.flags.DEFINE_string('run_dir', '/tmp/melody_vae/logdir/run1',
                            'Path to the directory where checkpoints and '
                            'summary events will be saved during training and '
                            'evaluation. Separate subdirectories for training '
@@ -71,10 +71,10 @@ def main(unused_argv):
       os.path.expanduser(FLAGS.sequence_example_file))
   run_dir = os.path.expanduser(FLAGS.run_dir)
 
-  config = melody_rnn_config_flags.config_from_flags()
+  config = melody_vae_config_flags.config_from_flags()
 
   mode = 'eval' if FLAGS.eval else 'train'
-  graph = events_rnn_graph.build_graph(
+  graph = events_vae_graph.build_graph(
       mode, config, sequence_example_file_paths)
 
   train_dir = os.path.join(run_dir, 'train')
@@ -87,11 +87,11 @@ def main(unused_argv):
     if not os.path.exists(eval_dir):
       tf.gfile.MakeDirs(eval_dir)
     tf.logging.info('Eval dir: %s', eval_dir)
-    events_rnn_train.run_eval(graph, train_dir, eval_dir,
+    events_vae_train.run_eval(graph, train_dir, eval_dir,
                               FLAGS.num_training_steps, FLAGS.summary_frequency)
 
   else:
-    events_rnn_train.run_training(graph, train_dir, FLAGS.num_training_steps,
+    events_vae_train.run_training(graph, train_dir, FLAGS.num_training_steps,
                                   FLAGS.summary_frequency)
 
 

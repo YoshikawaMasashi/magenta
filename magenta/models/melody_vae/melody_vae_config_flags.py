@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Provides a class, defaults, and utils for Melody RNN model configuration."""
+"""Provides a class, defaults, and utils for Melody VAE model configuration."""
 
 # internal imports
 import tensorflow as tf
 
 import magenta
-from magenta.models.melody_rnn import melody_rnn_model
+from magenta.models.melody_vae import melody_vae_model
 
 FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string(
@@ -47,7 +47,7 @@ tf.app.flags.DEFINE_string(
     'hyperparameters if `--config` is also supplied.')
 
 
-class MelodyRnnConfigFlagsException(Exception):
+class MelodyVaeConfigFlagsException(Exception):
   pass
 
 
@@ -89,31 +89,31 @@ melody_encoder_decoders = {
 
 
 def config_from_flags():
-  """Parses flags and returns the appropriate MelodyRnnConfig.
+  """Parses flags and returns the appropriate MelodyVaeConfig.
 
-  If `--config` is supplied, returns the matching default MelodyRnnConfig after
+  If `--config` is supplied, returns the matching default MelodyVaeConfig after
   updating the hyperparameters based on `--hparams`.
 
-  If `--melody_encoder_decoder` is supplied, returns a new MelodyRnnConfig using
+  If `--melody_encoder_decoder` is supplied, returns a new MelodyVaeConfig using
   the matching EventSequenceEncoderDecoder, generator details supplied by
   `--generator_id` and `--generator_description`, and hyperparameters based on
   `--hparams`.
 
   Returns:
-    The appropriate MelodyRnnConfig based on the supplied flags.
+    The appropriate MelodyVaeConfig based on the supplied flags.
 
   Raises:
-     MelodyRnnConfigFlagsException: When not exactly one of `--config` or
+     MelodyVaeConfigFlagsException: When not exactly one of `--config` or
          `melody_encoder_decoder` is supplied.
   """
   if (FLAGS.melody_encoder_decoder, FLAGS.config).count(None) != 1:
-    raise MelodyRnnConfigFlagsException(
+    raise MelodyVaeConfigFlagsException(
         'Exactly one of `--config` or `--melody_encoder_decoder` must be '
         'supplied.')
 
   if FLAGS.melody_encoder_decoder is not None:
     if FLAGS.melody_encoder_decoder not in melody_encoder_decoders:
-      raise MelodyRnnConfigFlagsException(
+      raise MelodyVaeConfigFlagsException(
           '`--melody_encoder_decoder` must be one of %s. Got %s.' % (
               melody_encoder_decoders.keys(), FLAGS.melody_encoder_decoder))
     if FLAGS.generator_id is not None:
@@ -124,17 +124,17 @@ def config_from_flags():
     else:
       generator_details = None
     encoder_decoder = melody_encoder_decoders[FLAGS.melody_encoder_decoder](
-        melody_rnn_model.DEFAULT_MIN_NOTE, melody_rnn_model.DEFAULT_MAX_NOTE)
+        melody_vae_model.DEFAULT_MIN_NOTE, melody_vae_model.DEFAULT_MAX_NOTE)
     hparams = magenta.common.HParams()
     hparams.parse(FLAGS.hparams)
-    return melody_rnn_model.MelodyRnnConfig(
+    return melody_vae_model.MelodyVaeConfig(
         generator_details, encoder_decoder, hparams)
   else:
-    if FLAGS.config not in melody_rnn_model.default_configs:
-      raise MelodyRnnConfigFlagsException(
+    if FLAGS.config not in melody_vae_model.default_configs:
+      raise MelodyVaeConfigFlagsException(
           '`--config` must be one of %s. Got %s.' % (
-              melody_rnn_model.default_configs.keys(), FLAGS.config))
-    config = melody_rnn_model.default_configs[FLAGS.config]
+              melody_vae_model.default_configs.keys(), FLAGS.config))
+    config = melody_vae_model.default_configs[FLAGS.config]
     config.hparams.parse(FLAGS.hparams)
     if FLAGS.generator_id is not None:
       config.details.id = FLAGS.generator_id

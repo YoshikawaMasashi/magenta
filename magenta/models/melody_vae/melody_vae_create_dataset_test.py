@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for melody_rnn_create_dataset."""
+"""Tests for melody_vae_create_dataset."""
 
 # internal imports
 import tensorflow as tf
 import magenta
 
-from magenta.models.melody_rnn import melody_rnn_create_dataset
-from magenta.models.melody_rnn import melody_rnn_model
+from magenta.models.melody_vae import melody_vae_create_dataset
+from magenta.models.melody_vae import melody_vae_model
 from magenta.pipelines import melody_pipelines
 from magenta.pipelines import pipelines_common
 from magenta.protobuf import music_pb2
@@ -27,10 +27,10 @@ from magenta.protobuf import music_pb2
 FLAGS = tf.app.flags.FLAGS
 
 
-class MelodyRNNPipelineTest(tf.test.TestCase):
+class MelodyVAEPipelineTest(tf.test.TestCase):
 
   def setUp(self):
-    self.config = melody_rnn_model.MelodyRnnConfig(
+    self.config = melody_vae_model.MelodyVaeConfig(
         None,
         magenta.music.OneHotEventSequenceEncoderDecoder(
             magenta.music.MelodyOneHotEncoding(0, 127)),
@@ -39,7 +39,7 @@ class MelodyRNNPipelineTest(tf.test.TestCase):
         max_note=127,
         transpose_to_key=0)
 
-  def testMelodyRNNPipeline(self):
+  def testMelodyVAEPipeline(self):
     note_sequence = magenta.common.testing_lib.parse_test_proto(
         music_pb2.NoteSequence,
         """
@@ -69,7 +69,7 @@ class MelodyRNNPipelineTest(tf.test.TestCase):
     one_hot = one_hot_encoding.encode(melody)
     expected_result = {'training_melodies': [one_hot], 'eval_melodies': []}
 
-    pipeline_inst = melody_rnn_create_dataset.get_pipeline(self.config,
+    pipeline_inst = melody_vae_create_dataset.get_pipeline(self.config,
                                                            eval_ratio=0.0)
     result = pipeline_inst.transform(note_sequence)
     self.assertEqual(expected_result, result)

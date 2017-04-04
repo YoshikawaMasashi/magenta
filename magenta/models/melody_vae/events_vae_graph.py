@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Provides function to build an event sequence RNN model's graph."""
+"""Provides function to build an event sequence VAE model's graph."""
 
 # internal imports
 import tensorflow as tf
@@ -23,20 +23,20 @@ def make_rnn_cell(rnn_layer_sizes,
                   attn_length=0,
                   base_cell=tf.contrib.rnn.BasicLSTMCell,
                   state_is_tuple=False):
-  """Makes a RNN cell from the given hyperparameters.
+  """Makes a VAE cell from the given hyperparameters.
 
   Args:
     rnn_layer_sizes: A list of integer sizes (in units) for each layer of the
-        RNN.
+        VAE.
     dropout_keep_prob: The float probability to keep the output of any given
         sub-cell.
     attn_length: The size of the attention vector.
-    base_cell: The base tf.contrib.rnn.RNNCell to use for sub-cells.
+    base_cell: The base tf.contrib.rnn.VAECell to use for sub-cells.
     state_is_tuple: A boolean specifying whether to use tuple of hidden matrix
         and cell matrix as a state instead of a concatenated matrix.
 
   Returns:
-      A tf.contrib.rnn.MultiRNNCell based on the given hyperparameters.
+      A tf.contrib.rnn.MultiVAECell based on the given hyperparameters.
   """
   cells = []
   for num_units in rnn_layer_sizes:
@@ -59,7 +59,7 @@ def build_graph(mode, config, sequence_example_file_paths=None):
   Args:
     mode: 'train', 'eval', or 'generate'. Only mode related ops are added to
         the graph.
-    config: An EventSequenceRnnConfig containing the encoder/decoder and HParams
+    config: An EventSequenceVaeConfig containing the encoder/decoder and HParams
         to use.
     sequence_example_file_paths: A list of paths to TFRecord files containing
         tf.train.SequenceExample protos. Only needed for training and
@@ -95,12 +95,17 @@ def build_graph(mode, config, sequence_example_file_paths=None):
     elif mode == 'generate':
       inputs = tf.placeholder(tf.float32, [hparams.batch_size, None,
                                            input_size])
-      # If state_is_tuple is True, the output RNN cell state will be a tuple
+      # If state_is_tuple is True, the output VAE cell state will be a tuple
       # instead of a tensor. During training and evaluation this improves
-      # performance. However, during generation, the RNN cell state is fed
+      # performance. However, during generation, the VAE cell state is fed
       # back into the graph with a feed dict. Feed dicts require passed in
       # values to be tensors and not tuples, so state_is_tuple is set to False.
       state_is_tuple = False
+
+    encoder_cell = make_rnn_cell([64],
+                         dropout_keep_prob=hparams.dropout_keep_prob,
+                         attn_length=hparams.attn_length,
+                         state_is_tuple=state_is_tuple)
 
     cell = make_rnn_cell(hparams.rnn_layer_sizes,
                          dropout_keep_prob=hparams.dropout_keep_prob,
